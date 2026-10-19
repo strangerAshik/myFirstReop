@@ -146,6 +146,10 @@ def main():
     required = ['SHOPIFY_SHOP','SHOPIFY_ACCESS_TOKEN','GEMINI_API_KEY','GITHUB_REPOSITORY','GH_TOKEN']
     missing = [k for k in required if not os.environ.get(k)]
     if missing: raise RuntimeError('Missing secret configuration: ' + ', '.join(missing))
+    repo_info = request('https://api.github.com/repos/' + os.environ['GITHUB_REPOSITORY'],
+        headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json'})
+    if repo_info.get('private') is not True:
+        raise RuntimeError('Private repository required before loading image metadata or calling Shopify')
     if os.environ.get('FREE_ONLY_CONFIRMED') != 'true':
         raise RuntimeError('Confirm non-billing Gemini project and zero paid Actions budget first')
     rows = json.loads((ROOT/'manifest.json').read_text())
